@@ -1,36 +1,43 @@
-use std::net::UdpSocket;
+use std::net;
 
-type Error = Box<dyn std::error::Error>;
-type Result<T> = std::result::Result<T, Error>;
+fn listen(socket: &net::UdpSocket, mut buffer: &mut [u8]) -> usize {
 
-pub struct BytePacketBuffer {
-    pub buf: [u8; 512],
-    pub pos: usize,
+    let (number_of_bytes, src_addr) = socket.recv_from(&mut buffer).expect("no data received");
+
+    println!("{:?}", number_of_bytes);
+    println!("{:?}", src_addr);
+
+    number_of_bytes
 }
 
-pub fn new() -> BytePacketBuffer {
-    BytePacketBuffer {
-        buf: [0; 512],
-        pos: 0,
-    }
+fn send(socket: &net::UdpSocket, receiver: &str, msg: &Vec<u8>) -> usize {
+
+    println!("sending data");
+    let result = socket.send_to(msg, receiver).expect("failed to send message");
+
+    result
 }
 
-fn handle_query(socket: &UdpSocket) -> Result<()> {
-    let mut req_buffer = new();
-    let (_, src) = socket.recv_from(&mut req_buffer.buf)?;
+fn init_host() -> net::UdpSocket {
 
-    println!("{}", src);
+    println!("initializing host");
+    let socket = net::UdpSocket::bind(("192.168.1.41", 53)).expect("failed to bind host socket");
 
-    Ok(())
+    socket
 }
 
-fn main() -> Result<()> {
-    let socket = UdpSocket::bind(("192.168.1.41", 53))?;
+fn main() {
+    // TODO(alex): Currently hangs on listening, there must be a way to set a timeout, simply
+    // setting the timeout to true did not work.
+    let mut buf: Vec<u8> = Vec::with_capacity(100);
+    let socket = init_host();
+    let message = String::from("hello");
+    let msg_bytes = message.into_bytes();
 
     loop {
-        match handle_query(&socket) {
-            Ok(_) => {}
-            Err(e) => eprintln!("An error occurred: {}", e),
+        while listen(&socket, &mut buf) != 0 {
+            println!("boo");
         }
+        // send(&socket, &client_arg, &msg_bytes);
     }
 }
