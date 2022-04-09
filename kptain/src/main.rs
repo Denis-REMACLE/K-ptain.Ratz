@@ -1,4 +1,5 @@
 use std::net;
+use std::env;
 
 fn listen(socket: &net::UdpSocket, mut buffer: &mut [u8]) -> usize {
 
@@ -27,8 +28,6 @@ fn init_host() -> net::UdpSocket {
 }
 
 fn main() {
-    // TODO(alex): Currently hangs on listening, there must be a way to set a timeout, simply
-    // setting the timeout to true did not work.
     let mut buf: Vec<u8> = Vec::with_capacity(100);
     let socket = init_host();
     let message = String::from("hello");
@@ -38,6 +37,5 @@ fn main() {
         while listen(&socket, &mut buf) != 0 {
             println!("boo");
         }
-        // send(&socket, &client_arg, &msg_bytes);
     }
 }
