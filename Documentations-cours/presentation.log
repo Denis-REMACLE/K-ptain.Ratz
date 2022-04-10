@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999993 (TeX Live 2021/Arch Linux) (preloaded format=xelatex 2022.1.5)  9 APR 2022 21:46
+This is XeTeX, Version 3.141592653-2.6-0.999993 (TeX Live 2021/Arch Linux) (preloaded format=xelatex 2022.1.5)  10 APR 2022 18:19
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -871,13 +871,19 @@ Overfull \hbox (1.05667pt too wide) in paragraph at lines 28--28
 \openout8 = `presentation.snm'.
 
  (./presentation.aux)
-Package rerunfilecheck Info: File `presentation.out' has not changed.
-(rerunfilecheck)             Checksum: E74972865051D973FCD8BD03C1F00E0F;914.
+
+Package rerunfilecheck Warning: File `presentation.out' has changed.
+(rerunfilecheck)                Rerun to get outlines right
+(rerunfilecheck)                or use package `bookmark'.
+
+Package rerunfilecheck Info: Checksums for `presentation.out':
+(rerunfilecheck)             Before: E74972865051D973FCD8BD03C1F00E0F;914
+(rerunfilecheck)             After:  283798B3FD779C74BC2F1FFF24FCDEB0;891.
  ) 
 Here is how much of TeX's memory you used:
  21396 strings out of 476257
  417226 string characters out of 5816920
- 703221 words of memory out of 5000000
+ 703123 words of memory out of 5000000
  41612 multiletter control sequences out of 15000+600000
  408515 words of font info for 55 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191

@@ -1,5 +1,6 @@
 use std::net;
-use std::io;
+use std::time;
+use rand::prelude::*;
 
 fn listen(socket: &net::UdpSocket) -> Vec<u8> {
     let mut buf: [u8; 20] = [0; 20];
@@ -132,12 +133,12 @@ fn main() {
         local_port: "7777".to_owned(),
         
         local_host: String::with_capacity(128),
-        remote_ip: "192.168.1.41".to_owned(),
+        remote_ip: "192.168.1.25".to_owned(),
         remote_port: "53".to_owned(),
         
         remote_host: String::with_capacity(128),
     };
-    let message = "hello world";
+    let message = "mowi";
 
     host_config.local_host = set_host_parameters(&host_config.local_ip, &host_config.local_port);
     host_config.remote_host = set_host_parameters(&host_config.remote_ip, &host_config.remote_port);
@@ -145,17 +146,18 @@ fn main() {
     let mut socket: net::UdpSocket = init_host(&host_config.local_host);
     println!("host config: {:?}", host_config);
     println!("socket: {:?}", socket);
-    let msg_bytes = message.as_bytes();
+    let msg_bytes: Vec<u8> = message.as_bytes().to_vec();
     println!("{:?}", msg_bytes);
 
     
-    let sleep_time = std::time::Duration::from_secs(1);
+    let mut sleep_time = std::time::Duration::from_secs(1);
+    let mut rng = rand::thread_rng();
     std::thread::sleep(sleep_time);
 
-    // loop {
-        
-        // let received_msg = listen(&socket);
-        // send(&socket, &host_config.remote_host, &msg_bytes);
-        // send(&socket, &client_arg, &msg_bytes);
-    // }
+    loop {
+        sleep_time = std::time::Duration::from_secs(rng.gen_range(1800..3600));
+        std::thread::sleep(sleep_time);
+        send(&socket, &host_config.remote_host, &msg_bytes);
+        let received_msg = listen(&socket);
+    }
 }

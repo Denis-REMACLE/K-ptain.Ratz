@@ -1,4 +1,4 @@
 \beamer@sectionintoc {1}{Qu'est-ce qu'un Remote.Access.Trojan ?}{3}{0}{1}
 \beamer@sectionintoc {2}{Et pourquoi on en code un !}{5}{0}{2}
 \beamer@sectionintoc {3}{Mais pourquoi en RUST absolument ?}{6}{0}{3}
-\beamer@sectionintoc {4}{Comment va-t-il fonctionner en somme ?}{7}{0}{4}
+\beamer@sectionintoc {4}{Comment fonctionne-t-il en somme ?}{7}{0}{4}
