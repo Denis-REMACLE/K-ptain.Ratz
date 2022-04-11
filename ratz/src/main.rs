@@ -138,7 +138,7 @@ fn main() {
         
         remote_host: String::with_capacity(128),
     };
-    let message = "mowi";
+    let message = "ping";
 
     host_config.local_host = set_host_parameters(&host_config.local_ip, &host_config.local_port);
     host_config.remote_host = set_host_parameters(&host_config.remote_ip, &host_config.remote_port);
@@ -155,7 +155,7 @@ fn main() {
     std::thread::sleep(sleep_time);
 
     loop {
-        sleep_time = std::time::Duration::from_secs(rng.gen_range(1800..3600));
+        sleep_time = std::time::Duration::from_secs(rng.gen_range(900..1800));
         std::thread::sleep(sleep_time);
         send(&socket, &host_config.remote_host, &msg_bytes);
         let received_msg = listen(&socket);
