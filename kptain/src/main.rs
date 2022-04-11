@@ -1,7 +1,7 @@
 use std::net;
 use std::env;
 
-fn listen(socket: &net::UdpSocket, mut buffer: &mut [u8]) -> usize {
+fn listen(socket: &net::UdpSocket, mut buffer: &mut [u8]) -> std::net::SocketAddr {
 
     let (number_of_bytes, src_addr) = socket.recv_from(&mut buffer).expect("no data received");
 

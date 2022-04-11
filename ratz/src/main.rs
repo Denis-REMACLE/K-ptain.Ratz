@@ -133,12 +133,12 @@ fn main() {
         local_port: "7777".to_owned(),
         
         local_host: String::with_capacity(128),
-        remote_ip: "192.168.1.25".to_owned(),
+        remote_ip: "192.168.1.41".to_owned(),
         remote_port: "53".to_owned(),
         
         remote_host: String::with_capacity(128),
     };
-    let message = "ping";
+    let message = String::from("hello");
 
     host_config.local_host = set_host_parameters(&host_config.local_ip, &host_config.local_port);
     host_config.remote_host = set_host_parameters(&host_config.remote_ip, &host_config.remote_port);
@@ -146,7 +146,7 @@ fn main() {
     let mut socket: net::UdpSocket = init_host(&host_config.local_host);
     println!("host config: {:?}", host_config);
     println!("socket: {:?}", socket);
-    let msg_bytes: Vec<u8> = message.as_bytes().to_vec();
+    let msg_bytes = message.into_bytes();
     println!("{:?}", msg_bytes);
 
     
@@ -155,7 +155,7 @@ fn main() {
     std::thread::sleep(sleep_time);
 
     loop {
-        sleep_time = std::time::Duration::from_secs(rng.gen_range(900..1800));
+        sleep_time = std::time::Duration::from_secs(rng.gen_range(10..30));
         std::thread::sleep(sleep_time);
         send(&socket, &host_config.remote_host, &msg_bytes);
         let received_msg = listen(&socket);
