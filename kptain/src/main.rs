@@ -11,7 +11,7 @@ use std::io;
 use serde::{Deserialize, Serialize};
 use rsa::{RsaPublicKey, RsaPrivateKey, pkcs8::FromPublicKey, pkcs8::ToPublicKey, PaddingScheme};
 use rand::rngs::OsRng;
-use rusqlite::{params, Connection, Result, OpenFlags};
+use rusqlite::{params, Connection, Result};
 
 
 #[cfg(test)]
@@ -67,7 +67,7 @@ async fn db_process (channel_snd: Sender<String>, mut channel_rcv : Receiver<Str
                 let from_json_message: Message = serde_json::from_str(&n).unwrap();
                 if from_json_message.message_type == "global" {
                     conn.execute("INSERT INTO message (sender, message_type, message_content) VALUES (?1, ?2, ?3)",
-                     params![from_json_message.user_sender, from_json_message.message_type, from_json_message.message_content]).unwrap();
+                    params![from_json_message.user_sender, from_json_message.message_type, from_json_message.message_content]).unwrap();
                 // insert into db 
                 }
                 else if from_json_message.message_type == "get_from_db"{
@@ -155,7 +155,6 @@ async fn process (mut user : User, channel_snd : Sender<String>, mut channel_rcv
                 trim_newline(&mut user.username);
                 trim_newline(&mut n);
                 let mut from_json_message: Message = serde_json::from_str(&n).unwrap();
-                 
                 if user.username == from_json_message.user_receiver || from_json_message.message_type == "global"{
                     if from_json_message.message_type == "private" {
                         let split = from_json_message.message_content.splitn(3, " ");
@@ -198,7 +197,7 @@ async fn process (mut user : User, channel_snd : Sender<String>, mut channel_rcv
 #[tokio::main]
 async fn main() -> io::Result<()> {
     let (chann_snd, mut _chann_rcv)  = broadcast::channel(64);
-    let listener = TcpListener::bind("192.168.1.41:1234").await?;
+    let listener = TcpListener::bind("192.168.1.41:53").await?;
     // Generate priv and pub key of server
     let mut rng = OsRng;
     let bits = 2048;
