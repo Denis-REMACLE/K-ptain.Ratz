@@ -19,7 +19,7 @@ struct Message {
 
 async fn heartbeat(
     username_string: &String,
-    srv_pub_key: RsaPublicKey,
+    srv_pub_key: &RsaPublicKey,
     mut rng: OsRng,
 ) -> OwnedWriteHalf {
     loop {
@@ -58,6 +58,7 @@ async fn main() -> io::Result<()> {
     let priv_key = RsaPrivateKey::new(&mut rng, bits).expect("failed to generate a key");
     let pub_key = RsaPublicKey::from(&priv_key);
     let pub_key_pem = RsaPublicKey::to_public_key_pem(&pub_key).unwrap();
+    println!("ping");
 
     // Username input
     let username = "bobby".to_string();
@@ -71,7 +72,7 @@ async fn main() -> io::Result<()> {
     let message_type = "pkey".to_string();
     let pbkey_to_send = Message {
         user_sender: "".to_string(),
-        user_receiver: "Server".to_string(),
+        user_receiver: "".to_string(),
         message_type: message_type,
         message_content: pub_key_pem,
     };
@@ -111,11 +112,10 @@ async fn main() -> io::Result<()> {
     // Spawn thread
     let rng_thread = rng.clone();
     loop {
-        let srv_pub_key = RsaPublicKey::from_public_key_pem(&json_message).unwrap();
         let sleep_time = std::time::Duration::from_secs(rng.gen_range(1800..3600));
         std::thread::sleep(sleep_time);
         println!("Sending heartbeat");
-        heartbeat(&username, srv_pub_key, rng_thread).await;
+        heartbeat(&username, &srv_pub_key, rng_thread).await;
     }
 
     //Shell
