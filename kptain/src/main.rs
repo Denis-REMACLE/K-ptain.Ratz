@@ -184,7 +184,7 @@ async fn process (mut user : User, channel_snd : Sender<String>, mut channel_rcv
                 let dec_data = srv_priv_key.decrypt(PaddingScheme::new_pkcs1v15_encrypt(), &data[..n]).expect("failed to decrypt");
                 assert_ne!(&dec_data, &data[..n]);
                 println!("read {} bytes", n);
-                println!("{:?}", String::from_utf8(dec_data));
+                println!("Heartbeat recieved");
             }
             Err(_e) => {}
         }
@@ -229,7 +229,6 @@ async fn main() -> io::Result<()> {
         }
 
         let json_pkey: Message = serde_json::from_str(&client_pkey).unwrap();
-        println!("{}", json_pkey.message_content);
         let client_public_key = RsaPublicKey::from_public_key_pem(&json_pkey.message_content).unwrap();
         
         // Send Server public key
@@ -240,7 +239,6 @@ async fn main() -> io::Result<()> {
             message_type: message_type,
             message_content: pub_key_pem.to_string(),
         };
-        println!("{}", pub_key_pem.to_string());
         let json_message = serde_json::to_string(&pkey_server_send).unwrap();
         socket.writable().await?;
         socket.write_all(&json_message.as_bytes()).await.unwrap();

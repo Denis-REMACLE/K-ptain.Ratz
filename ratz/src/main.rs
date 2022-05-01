@@ -17,7 +17,7 @@ struct Message {
     message_content: String,
 }
 
-fn trim_newline(s:&mut String){
+fn _trim_newline(s:&mut String){
     while s.ends_with('\n') || s.ends_with('\r') || s.ends_with('\u{0}') {
         s.pop();
     };
@@ -28,27 +28,25 @@ async fn heartbeat(
     username_string: &String,
     srv_pub_key: &RsaPublicKey,
     mut rng: OsRng,
-) -> OwnedWriteHalf {
-    loop {
-        let s = "available".to_string();
-        let message_type = "heartbeat".to_string();
-        // check if message is private or global
-        let hearbeat_to_send = Message {
-            user_sender: username_string.to_string(),
-            user_receiver: "Server".to_string(),
-            message_type: message_type,
-            message_content: s.to_string(),
-        };
-        let json_message = serde_json::to_string(&hearbeat_to_send).unwrap();
-        let enc_data = srv_pub_key
-            .encrypt(
-                &mut rng,
-                PaddingScheme::new_pkcs1v15_encrypt(),
-                &json_message.as_bytes(),
-            )
-            .expect("failed to encrypt");
-        s_write.write_all(&enc_data).await.unwrap();
-    }
+) {
+    let s = "available".to_string();
+    let message_type = "heartbeat".to_string();
+    // check if message is private or global
+    let hearbeat_to_send = Message {
+        user_sender: username_string.to_string(),
+        user_receiver: "Server".to_string(),
+        message_type: message_type,
+        message_content: s.to_string(),
+    };
+    let json_message = serde_json::to_string(&hearbeat_to_send).unwrap();
+    let enc_data = srv_pub_key
+        .encrypt(
+            &mut rng,
+            PaddingScheme::new_pkcs1v15_encrypt(),
+            &json_message.as_bytes(),
+        )
+        .expect("failed to encrypt");
+    s_write.write_all(&enc_data).await.unwrap();
 }
 /*
 fn  reverseshell(host: String, port: String) {
@@ -121,7 +119,6 @@ async fn main() -> io::Result<()> {
     let priv_key = RsaPrivateKey::new(&mut rng, bits).expect("failed to generate a key");
     let pub_key = RsaPublicKey::from(&priv_key);
     let pub_key_pem = RsaPublicKey::to_public_key_pem(&pub_key).unwrap();
-    println!("ping");
 
     // Username input
     let username = "bobby".to_string();
@@ -152,7 +149,6 @@ async fn main() -> io::Result<()> {
 
     let json_message: Message = serde_json::from_str(&rcv_msg).unwrap();
     let srv_pub_key = RsaPublicKey::from_public_key_pem(&json_message.message_content).unwrap();
-    println!("{:?}", srv_pub_key);
     // send username to server
     let message_type = "login".to_string();
 
