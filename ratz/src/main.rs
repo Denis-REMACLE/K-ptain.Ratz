@@ -33,23 +33,21 @@ async fn heartbeat(
         let s = "available".to_string();
         let message_type = "heartbeat".to_string();
         // check if message is private or global
-        let message_must_sended = true;
-
-        // check if message is correct
-        if message_must_sended {
-            let message_to_send = Message {
-                user_sender: username_string.to_string(),
-                user_receiver: "Server".to_string(),
-                message_type: message_type,
-                message_content: s,
-            };
-
-            // message sending
-            let json_message = serde_json::to_string(&message_to_send).unwrap();
-            println!("{:?}", json_message);
-            let enc_data = srv_pub_key.encrypt(&mut rng, PaddingScheme::new_pkcs1v15_encrypt(), &json_message.as_bytes()).expect("failed to encrypt");
-            s_write.write_all(&enc_data).await.unwrap();
-        }
+        let hearbeat_to_send = Message {
+            user_sender: username_string.to_string(),
+            user_receiver: "Server".to_string(),
+            message_type: message_type,
+            message_content: s.to_string(),
+        };
+        let json_message = serde_json::to_string(&hearbeat_to_send).unwrap();
+        let enc_data = srv_pub_key
+            .encrypt(
+                &mut rng,
+                PaddingScheme::new_pkcs1v15_encrypt(),
+                &json_message.as_bytes(),
+            )
+            .expect("failed to encrypt");
+        s_write.write_all(&enc_data).await.unwrap();
     }
 }
 /*
@@ -177,21 +175,11 @@ async fn main() -> io::Result<()> {
     // Spawn thread
     let rng_thread = rng.clone();
     loop{
-        let sleep_time = std::time::Duration::from_secs(rng.gen_range(10..30));
+        let sleep_time = std::time::Duration::from_secs(rng.gen_range(30..60));
+        println!("{:?}", sleep_time);
         std::thread::sleep(sleep_time);
         println!("Sending heartbeat");
         heartbeat(&mut writer, &username, &srv_pub_key, rng_thread).await;
-
-        let mut buf = [0; 4096];
-        let n = reader.read(&mut buf[..]).await?;
-        let dec_data = priv_key.decrypt(PaddingScheme::new_pkcs1v15_encrypt(), &buf[..n]).expect("failed to decrypt");
-        assert_ne!(&dec_data, &buf[..n]);
-        
-        let mut rcv_msg = String::from_utf8_lossy(&dec_data).to_string();
-        trim_newline(&mut rcv_msg);
-
-        let json_message: Message = serde_json::from_str(&rcv_msg).unwrap();
-        println!("{:?}", json_message.message_content);
     }
 
     //Shell
