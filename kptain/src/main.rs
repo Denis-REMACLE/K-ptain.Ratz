@@ -263,7 +263,20 @@ async fn main() -> io::Result<()> {
             stream: socket,
             _addr: addr,
         };
-
+        
+        let conn = Connection::open("datasave.db").unwrap();
+        let socket_ddr: &str = &user1._addr.to_string();
+        let croped : Vec<&str> = socket_ddr.split(":").collect();
+        
+        let verif: Result<i64> = conn.query_row("SELECT * FROM user WHERE name = ?",&[&user1.username], |row| row.get(0));
+        match verif {
+            Ok(n) =>{println!("client already exist");}
+            Err(_) =>{
+                conn.execute("insert into user (name,ip,autre) values (:name,:ip,:port);",&[(":name", &user1.username.to_string() ),(":ip", &croped[0].to_string()),(":port", &croped[1].to_string())],);
+                println!("client added to db");
+            }
+        }
+        
           // Thread creation
         let thread_send = chann_snd.clone();
         let thread_rcv = chann_snd.subscribe();
