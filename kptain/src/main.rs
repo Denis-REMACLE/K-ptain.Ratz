@@ -13,6 +13,8 @@ use rsa::{RsaPublicKey, RsaPrivateKey, pkcs8::FromPublicKey, pkcs8::ToPublicKey,
 use rand::rngs::OsRng;
 use rusqlite::{params, Connection, Result};
 use std::fs;
+use std::fs::File;
+use std::io::prelude::*;
 
 #[cfg(test)]
 mod tests {
@@ -266,13 +268,24 @@ async fn main() -> io::Result<()> {
         
         let path = "/etc/kptain.ratz";
         if !std::path::Path::new(&path).exists() {
-        fs::create_dir("/etc/kptain.ratz")?;}
+        fs::create_dir("/etc/kptain.ratz")?;
+        File::create("/etc/kptain.ratz/datasave.db")?;
+        let conn = Connection::open("/etc/kptain.ratz/datasave.db").unwrap();
         
+        conn.execute(
+            "CREATE TABLE user (
+                id INTEGER PRIMARY KEY,
+                name TEXT,
+                ip TEXT,
+                autre TEXT);",NO_PARAMS,);
+            }
         
         let conn = Connection::open("/etc/kptain.ratz/datasave.db").unwrap();
+        println!("{}, {}",user1.username,user1._addr);
         let socket_ddr: &str = &user1._addr.to_string();
         let croped : Vec<&str> = socket_ddr.split(":").collect();
         
+        //let mut statement = conn.prepare("SELECT * FROM user WHERE name = ?").unwrap();
         let verif: Result<i64> = conn.query_row("SELECT * FROM user WHERE name = ?",&[&user1.username], |row| row.get(0));
         match verif {
             Ok(n) =>{println!("client already exist");}
