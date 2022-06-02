@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 use rsa::{RsaPublicKey, RsaPrivateKey, pkcs8::FromPublicKey, pkcs8::ToPublicKey, PaddingScheme};
 use rand::rngs::OsRng;
 use rusqlite::{params, Connection, Result};
-
+use std::fs;
 
 #[cfg(test)]
 mod tests {
@@ -264,7 +264,12 @@ async fn main() -> io::Result<()> {
             _addr: addr,
         };
         
-        let conn = Connection::open("datasave.db").unwrap();
+        let path = "/etc/kptain.ratz";
+        if !std::path::Path::new(&path).exists() {
+        fs::create_dir("/etc/kptain.ratz")?;}
+        
+        
+        let conn = Connection::open("/etc/kptain.ratz/datasave.db").unwrap();
         let socket_ddr: &str = &user1._addr.to_string();
         let croped : Vec<&str> = socket_ddr.split(":").collect();
         
