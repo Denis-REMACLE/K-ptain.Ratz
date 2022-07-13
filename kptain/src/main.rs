@@ -14,7 +14,6 @@ use rand::rngs::OsRng;
 use rusqlite::{params, Connection, Result, NO_PARAMS};
 use std::fs;
 use std::fs::File;
-use rusqlite::NO_PARAMS;
 
 #[cfg(test)]
 mod tests {
