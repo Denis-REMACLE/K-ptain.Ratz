@@ -265,11 +265,11 @@ async fn main() -> io::Result<()> {
             _addr: addr,
         };
         
-        let fp = "/var/www/Dashboard/datasave.db";
+        let fp = "/var/www/Dashboard/gui/central/datasave.db";
         if !std::path::Path::new(fp).exists() {
         println!("On crée la base");
-        File::create("/var/www/Dashboard/datasave.db")?;
-        let conn = Connection::open("/var/www/Dashboard/datasave.db").unwrap();
+        File::create("/var/www/Dashboard/gui/central/datasave.db")?;
+        let conn = Connection::open("/var/www/Dashboard/gui/central/datasave.db").unwrap();
         
         conn.execute(
             "CREATE TABLE user (
@@ -281,7 +281,7 @@ async fn main() -> io::Result<()> {
         }
         
         
-        let conn = Connection::open("/var/www/Dashboard/datasave.db").unwrap();
+        let conn = Connection::open("/var/www/Dashboard/gui/central/datasave.db").unwrap();
         println!("{}, {}",user1.username,user1._addr);
         let socket_ddr: &str = &user1._addr.to_string();
         let croped : Vec<&str> = socket_ddr.split(":").collect();
