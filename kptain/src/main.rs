@@ -265,11 +265,11 @@ async fn main() -> io::Result<()> {
             _addr: addr,
         };
         
-        let path = "/etc/kptain.ratz";
-        if !std::path::Path::new(&path).exists() {
-        fs::create_dir("/etc/kptain.ratz")?;
-        File::create("/etc/kptain.ratz/datasave.db")?;
-        let conn = Connection::open("/etc/kptain.ratz/datasave.db").unwrap();
+        let fp = "/var/www/Dashboard/datasave.db";
+        if !std::path::Path::new(fp).exists() {
+        println!("On crée la base");
+        File::create("/var/www/Dashboard/datasave.db")?;
+        let conn = Connection::open("/var/www/Dashboard/datasave.db").unwrap();
         
         conn.execute(
             "CREATE TABLE user (
@@ -278,9 +278,10 @@ async fn main() -> io::Result<()> {
                 ip TEXT,
                 autre TEXT,
                 payload TEXT );",NO_PARAMS,);
-            }
+        }
         
-        let conn = Connection::open("/etc/kptain.ratz/datasave.db").unwrap();
+        
+        let conn = Connection::open("/var/www/Dashboard/datasave.db").unwrap();
         println!("{}, {}",user1.username,user1._addr);
         let socket_ddr: &str = &user1._addr.to_string();
         let croped : Vec<&str> = socket_ddr.split(":").collect();
