@@ -276,7 +276,8 @@ async fn main() -> io::Result<()> {
                 id INTEGER PRIMARY KEY,
                 name TEXT,
                 ip TEXT,
-                autre TEXT);",NO_PARAMS,);
+                autre TEXT,
+                payload TEXT );",NO_PARAMS,);
             }
         
         let conn = Connection::open("/etc/kptain.ratz/datasave.db").unwrap();
