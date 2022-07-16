@@ -300,7 +300,7 @@ async fn main() -> io::Result<()> {
         let priv_key_thread = priv_key.clone();
         let rng_thread = rng.clone();
         tokio::spawn(async move {
-            process(user1, thread_send, thread_rcv, priv_key_thread, client_public_key, rng_thread).await;
+            process(user1, thread_send, thread_rcv, priv_key_thread, client_public_key, rng_thread);
         });
         chann_snd.send(username_string).unwrap();
     }
