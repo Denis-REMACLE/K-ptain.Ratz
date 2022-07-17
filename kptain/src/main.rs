@@ -275,7 +275,8 @@ async fn main() -> io::Result<()> {
                 name TEXT,
                 ip TEXT,
                 autre TEXT,
-                payload TEXT );",NO_PARAMS,);
+                payload TEXT,
+                port_payload INTEGER );",NO_PARAMS,);
         }
         
         
