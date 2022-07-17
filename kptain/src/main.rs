@@ -181,6 +181,8 @@ async fn process (mut user : User, channel_snd : Sender<String>, mut channel_rcv
                 let first_entry = query.next().unwrap();
                 let payload = first_entry.unwrap();
 
+                println!("{}", payload.payload);
+
                 if payload.payload != ""{
                     let message_to_send = Message {
                         user_sender: "Server".to_string(),
