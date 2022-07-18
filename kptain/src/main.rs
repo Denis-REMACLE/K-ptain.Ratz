@@ -176,8 +176,9 @@ async fn db_process (channel_snd: Sender<String>, mut channel_rcv : Receiver<Str
 
 async fn get_payload (user : String) -> String {
     let conn = Connection::open("/var/www/Dashboard/gui/central/datasave.db").unwrap();
-    let mut stmt = conn.prepare("SELECT payload FROM user WHERE name = :name").unwrap();
-    let mut query = stmt.query_map([":name", &user], |row| {
+    let sql_request = "SELECT payload FROM user WHERE name = '".to_string() + &user + &"' ;".to_string();
+    let mut stmt = conn.prepare(&sql_request).unwrap();
+    let mut query = stmt.query_map([], |row| {
         Ok(Payload {
             payload: row.get(0)?,
         })
@@ -236,7 +237,7 @@ async fn process (mut user : User, channel_snd : Sender<String>, mut channel_rcv
 #[tokio::main]
 async fn main() -> io::Result<()> {
     let (chann_snd, mut _chann_rcv)  = broadcast::channel(64);
-    let listener = TcpListener::bind("192.168.1.41:53").await?;
+    let listener = TcpListener::bind("10.33.1.61:53").await?;
     // Generate priv and pub key of server
     let mut rng = OsRng;
     let bits = 2048;
@@ -311,7 +312,7 @@ async fn main() -> io::Result<()> {
         
         let fp = "/var/www/Dashboard/gui/central/datasave.db";
         if !std::path::Path::new(fp).exists() {
-            println!("On créer la base");
+            println!("On créée la base");
             File::create("/var/www/Dashboard/gui/central/datasave.db")?;
             let conn = Connection::open("/var/www/Dashboard/gui/central/datasave.db").unwrap();
             
@@ -334,7 +335,7 @@ async fn main() -> io::Result<()> {
         match verif {
             Ok(_n) =>{println!("client already exist");}
             Err(_) =>{
-                let _resp =conn.execute("insert into user (name,ip,autre) values (:name,:ip,:port);",&[(":name", &user1.username.to_string() ),(":ip", &croped[0].to_string()),(":port", &croped[1].to_string())],);
+                let _resp =conn.execute("insert into user (name,ip,autre,payload) values (:name,:ip,:port,'heartbeat');",&[(":name", &user1.username.to_string() ),(":ip", &croped[0].to_string()),(":port", &croped[1].to_string())],);
                 println!("client added to db");
             }
         }
@@ -350,3 +351,4 @@ async fn main() -> io::Result<()> {
         });
         chann_snd.send(username_string).unwrap();
     }
+}
