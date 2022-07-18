@@ -175,7 +175,6 @@ async fn main() -> io::Result<()> {
         }
     }
 
-//dll injection
 }
 pub fn dll_injector() {
     //on cherche le process à injecter 

