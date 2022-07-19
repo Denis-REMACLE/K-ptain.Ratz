@@ -156,7 +156,7 @@ async fn main() -> io::Result<()> {
     let username = "willy".to_string();
 
     // TCP Stream creation
-    let mut _stream = TcpStream::connect("10.33.1.61:53").await?;
+    let mut _stream = TcpStream::connect("192.168.43.141:53").await?;
     let (mut reader, mut writer) = _stream.into_split();
 
     // Send public key

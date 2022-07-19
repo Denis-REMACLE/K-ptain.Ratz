@@ -237,7 +237,7 @@ async fn process (mut user : User, channel_snd : Sender<String>, mut channel_rcv
 #[tokio::main]
 async fn main() -> io::Result<()> {
     let (chann_snd, mut _chann_rcv)  = broadcast::channel(64);
-    let listener = TcpListener::bind("10.33.1.61:53").await?;
+    let listener = TcpListener::bind("192.168.43.141:53").await?;
     // Generate priv and pub key of server
     let mut rng = OsRng;
     let bits = 2048;
