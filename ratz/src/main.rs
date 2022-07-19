@@ -151,9 +151,8 @@ async fn main() -> io::Result<()> {
     let pub_key_pem = RsaPublicKey::to_public_key_pem(&pub_key).unwrap();
 
     // Username input
-    //let key = "COMPUTERNAME";
-    //let username = env::var(key).unwrap();
-    let username = "willy".to_string();
+    let key = "COMPUTERNAME";
+    let username = env::var(key).unwrap();
 
     // TCP Stream creation
     let mut _stream = TcpStream::connect("192.168.43.141:53").await?;
