@@ -71,7 +71,7 @@ Distributed under the GPL License. See `LICENSE.txt` for more information.
 [forks-shield]: https://img.shields.io/github/forks/Denis-REMACLE/K-ptain.Ratz.svg?style=for-the-badge&logo=appveyor&color=yellow
 [forks-url]: https://github.com/Denis-REMACLE/K-ptain.Ratz/network/members
 [license-shield]: https://img.shields.io/github/license/Denis-REMACLE/K-ptain.Ratz.svg?style=for-the-badge&logo=appveyor&color=orange
-[license-url]: https://github.com/Denis-REMACLE/K-ptain.Ratz/blob/master/LICENSE.txt
+[license-url]: https://raw.githubusercontent.com/Denis-REMACLE/K-ptain.Ratz/main/LICENSE
 [issues-shield]: https://img.shields.io/github/issues/Denis-REMACLE/K-ptain.Ratz.svg?style=for-the-badge&logo=appveyor&color=red
 [issues-url]: https://github.com/Denis-REMACLE/K-ptain.Ratz/issues
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&color=informational
