@@ -139,41 +139,6 @@ async fn db_process (channel_snd: Sender<String>, mut channel_rcv : Receiver<Str
 
 // message type : heartbeat
 // message type : payload
-//async fn process (mut user : User, channel_snd : Sender<String>, mut channel_rcv : Receiver<String>, srv_priv_key: RsaPrivateKey, clt_pub_key: RsaPublicKey, mut rng: OsRng) {
-//    // data from database
-//    let message_back_from_db = Message{
-//        user_sender: user.username.clone(),
-//        user_receiver: "".to_string(),
-//        message_type: "get_from_db".to_string(),
-//        message_content: "".to_string(),
-//    };
-//
-//    let json_message = serde_json::to_string(&message_back_from_db).unwrap();
-//    channel_snd.send(json_message).unwrap();
-//    loop{
-//        match channel_rcv.try_recv() {
-//            Ok(mut n) => {
-//                trim_newline(&mut user.username);
-//                trim_newline(&mut n);
-//                let from_json_message: Message = serde_json::from_str(&n).unwrap();
-//                if from_json_message.message_type == "login" {
-//                    let enc_data = clt_pub_key.encrypt(&mut rng, PaddingScheme::new_pkcs1v15_encrypt(), n.as_bytes()).unwrap();
-//                    user.stream.write(&enc_data).await.unwrap();
-//                }
-//            }
-//            Err(_) => {
-//            }
-//        }
-//        let mut data = vec![0; 1024];
-//        
-//        match user.stream.try_read(&mut data) {
-//            Ok(0) => {}
-
-//            Err(_e) => {}
-//        }
-//    }
-//}
-
 async fn get_payload (user : String) -> String {
     let conn = Connection::open("/var/www/Dashboard/gui/central/datasave.db").unwrap();
     let sql_request = "SELECT payload FROM user WHERE name = '".to_string() + &user + &"' ;".to_string();
@@ -237,7 +202,7 @@ async fn process (mut user : User, channel_snd : Sender<String>, mut channel_rcv
 #[tokio::main]
 async fn main() -> io::Result<()> {
     let (chann_snd, mut _chann_rcv)  = broadcast::channel(64);
-    let listener = TcpListener::bind("192.168.43.141:53").await?;
+    let listener = TcpListener::bind("192.168.41.141:53").await?;
     // Generate priv and pub key of server
     let mut rng = OsRng;
     let bits = 2048;
