@@ -43,6 +43,12 @@ K-ptain.Ratz is a R.A.T (Remote Access Tool) written in Rust with web GUI made f
    ```sh
    git clone https://github.com/Denis-REMACLE/K-ptain.Ratz.git
    ```
+2. For full install and to get the complete web UI please refer to this repo https://github.com/nzkoxzu/K-ptain.Ratz-GUI
+
+## Disclaimer
+
+This project was made for educational purpose only and we do not keep responsibility of any bad usage.
+
 
 ## Contributing
 
